@@ -14,4 +14,5 @@ export const env = {
   baseUrl: required("BASE_URL"),
   email: required("EMAIL"),
   password: required("PASSWORD"),
+  endpointName: process.env["ENDPOINT_NAME"] ?? undefined,
 } as const;
