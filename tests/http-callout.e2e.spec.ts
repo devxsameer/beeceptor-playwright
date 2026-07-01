@@ -9,7 +9,7 @@ test("HTTP Callout workflow", async ({ page }) => {
 
   await dashboard.createHttpCalloutRule(calloutFixture);
 
-//   await dashboard.triggerRequest();
+  await dashboard.triggerRequest(calloutFixture);
 
-//   await dashboard.verifyCallout();
+  await dashboard.verifyCalloutExecution(calloutFixture);
 });

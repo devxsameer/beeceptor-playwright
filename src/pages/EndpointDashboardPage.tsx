@@ -1,4 +1,5 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, request, type Page } from "@playwright/test";
+import { env } from "../config/env.js";
 
 export interface HttpCalloutConfig {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -29,9 +30,6 @@ export class EndpointDashboardPage {
     await expect(this.page.getByText("Ready and waiting!")).toBeVisible();
   }
 
-  get url() {
-    return this.page.url();
-  }
   private get rulesModal() {
     return this.page.locator(".allRules");
   }
@@ -78,6 +76,7 @@ export class EndpointDashboardPage {
     ).toBeVisible();
 
     await this.closeRulesModal();
+    return;
   }
 
   private async openNewCalloutForm() {
@@ -112,11 +111,6 @@ export class EndpointDashboardPage {
         name: /your-webhook-endpoint/i,
       })
       .fill(config.targetEndpoint);
-
-    // const payloadLabels = {
-    //   forward: "Forward original payload",
-    //   custom: "Custom payload",
-    // };
 
     // Payload behaviour
     const payloadSelect = modal
@@ -158,5 +152,81 @@ export class EndpointDashboardPage {
       .click();
 
     await expect(this.rulesModal).toBeHidden();
+  }
+
+  private requestRow(path: string) {
+    return this.page
+      .locator(".event-row")
+      .filter({
+        has: this.page.locator("code", {
+          hasText: path,
+        }),
+      })
+      .first();
+  }
+
+  private async waitForRequest(path: string) {
+    const row = this.requestRow(path);
+
+    await expect(row).toBeVisible({
+      timeout: 15000,
+    });
+
+    return row;
+  }
+  private async assertRequestReceived(config: HttpCalloutConfig) {
+    const row = await this.waitForRequest(config.path);
+
+    await expect(row.getByText(config.method)).toBeVisible();
+
+    await expect(row.locator("code").first()).toContainText(config.path);
+  }
+  private async assertResponseStatus(path: string) {
+    const row = await this.waitForRequest(path);
+
+    await expect(row.getByText("200")).toBeVisible();
+  }
+  private async assertRuleMatched(path: string) {
+    const row = await this.waitForRequest(path);
+
+    await expect(row.getByTitle(/rule matched/i)).toBeVisible();
+  }
+  private async openRequest(path: string) {
+    const row = await this.waitForRequest(path);
+
+    await row.locator(".event-header").click();
+
+    return row;
+  }
+
+  private async assertResponseBody(path: string) {
+    const row = await this.openRequest(path);
+
+    await expect(row.locator(".res pre")).toBeVisible();
+  }
+
+  public async verifyCalloutExecution(config: HttpCalloutConfig) {
+    await this.assertRequestReceived(config);
+
+    await this.assertResponseStatus(config.path);
+
+    await this.assertRuleMatched(config.path);
+
+    await this.assertResponseBody(config.path);
+  }
+
+  public async triggerRequest(config: HttpCalloutConfig) {
+    const api = await request.newContext();
+
+    const response = await api.fetch(
+      `https://${env.endpointName}.free.beeceptor.com${config.path}`,
+      {
+        method: config.method,
+      },
+    );
+
+    expect(response.ok()).toBeTruthy();
+
+    return response;
   }
 }

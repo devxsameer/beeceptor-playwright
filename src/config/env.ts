@@ -16,5 +16,5 @@ export const env = {
   password: required("PASSWORD"),
   endpointName: process.env.ENDPOINT_NAME ?? "sameer-playwright-assignment",
   webhookUrl:
-    process.env.WEBHOOK_URL ?? "https://wehhook-api.free.beeceptor.com/",
+    process.env.WEBHOOK_URL ?? "https://eohim3q08hs62la.m.pipedream.net",
 } as const;
