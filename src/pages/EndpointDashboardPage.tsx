@@ -229,4 +229,49 @@ export class EndpointDashboardPage {
 
     return response;
   }
+
+  private async confirmDelete() {
+    await this.page
+      .getByRole("button", {
+        name: /delete|confirm/i,
+      })
+      .last()
+      .click();
+  }
+  private async assertRuleDeleted(path: string) {
+    await expect(this.ruleRow(path)).toHaveCount(0);
+  }
+
+  private ruleRow(path: string) {
+    return this.rulesModal.locator(".rule-row").filter({
+      has: this.page.locator("code", {
+        hasText: path,
+      }),
+    });
+  }
+
+  public async deleteHttpCalloutRule(path: string) {
+    if (!(await this.hasRule(path))) {
+      return;
+    }
+
+    const row = this.ruleRow(path);
+
+    await Promise.all([
+      this.page.waitForEvent("dialog").then((dialog) => dialog.accept()),
+      row.locator('button[title="Delete rule"]').click(),
+    ]);
+
+    // await this.confirmDelete();
+
+    await this.assertRuleDeleted(path);
+  }
+
+  public async cleanup(config: HttpCalloutConfig) {
+    await this.openMockRules();
+
+    await this.deleteHttpCalloutRule(config.path);
+
+    await this.closeRulesModal();
+  }
 }

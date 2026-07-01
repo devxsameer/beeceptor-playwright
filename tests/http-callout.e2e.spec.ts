@@ -12,4 +12,6 @@ test("HTTP Callout workflow", async ({ page }) => {
   await dashboard.triggerRequest(calloutFixture);
 
   await dashboard.verifyCalloutExecution(calloutFixture);
+
+  await dashboard.cleanup(calloutFixture);
 });
