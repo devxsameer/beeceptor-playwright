@@ -17,4 +17,7 @@ export const env = {
   endpointName: process.env.ENDPOINT_NAME ?? "sameer-playwright-assignment",
   webhookUrl:
     process.env.WEBHOOK_URL ?? "https://eohim3q08hs62la.m.pipedream.net",
+  get endpointUrl() {
+    return `https://${env.endpointName}.free.beeceptor.com`;
+  },
 } as const;

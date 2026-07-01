@@ -2,7 +2,6 @@ import { type Locator, type Page } from "@playwright/test";
 
 import { EndpointDashboardPage } from "./EndpointDashboardPage.js";
 import { env } from "../config/env.js";
-import { uniqueName } from "../utils/random.js";
 
 export class EndpointsPage {
   constructor(private readonly page: Page) {}

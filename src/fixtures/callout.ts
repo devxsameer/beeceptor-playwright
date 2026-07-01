@@ -4,7 +4,7 @@ import type { HttpCalloutConfig } from "../pages/EndpointDashboardPage.js";
 export const calloutFixture = {
   method: "GET",
   path: "/callout",
-  targetEndpoint: env.webhookUrl!,
+  targetEndpoint: env.webhookUrl,
   responseBehaviour: "sync",
   payloadMode: "forward",
 } satisfies HttpCalloutConfig;

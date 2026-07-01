@@ -42,7 +42,7 @@ export class EndpointDashboardPage {
 
     await expect(this.rulesModal).toBeVisible();
   }
-  private async hasRule(path: string) {
+  private async ruleExists(path: string) {
     const modal = this.rulesModal;
 
     return modal
@@ -55,17 +55,17 @@ export class EndpointDashboardPage {
       .catch(() => false);
   }
 
-  public async createHttpCalloutRule(config: HttpCalloutConfig) {
+  public async ensureHttpCalloutRule(config: HttpCalloutConfig) {
     await this.openMockRules();
 
-    if (await this.hasRule(config.path)) {
+    if (await this.ruleExists(config.path)) {
       await this.closeRulesModal();
       return;
     }
 
     await this.openNewCalloutForm();
 
-    await this.fillCalloutForm(config);
+    await this.configureHttpCallout(config);
 
     await this.saveCalloutRule();
 
@@ -76,7 +76,6 @@ export class EndpointDashboardPage {
     ).toBeVisible();
 
     await this.closeRulesModal();
-    return;
   }
 
   private async openNewCalloutForm() {
@@ -86,16 +85,13 @@ export class EndpointDashboardPage {
     await modal.getByRole("link", { name: "New Callout Rule" }).click();
   }
 
-  private async fillCalloutForm(config: HttpCalloutConfig) {
+  private async configureHttpCallout(config: HttpCalloutConfig) {
     const modal = this.rulesModal;
-    // Request Matching
     await modal
       .getByRole("textbox", {
         name: /api\/path|request path|e\.g\.\s*\/api\/path/i,
       })
       .fill(config.path);
-
-    // Response Behaviour
 
     const responseType = modal
       .locator("#v2CollapseOne")
@@ -104,15 +100,12 @@ export class EndpointDashboardPage {
 
     await responseType.selectOption(config.responseBehaviour);
 
-    // Target endpoint
-
     await modal
       .getByRole("textbox", {
         name: /your-webhook-endpoint/i,
       })
       .fill(config.targetEndpoint);
 
-    // Payload behaviour
     const payloadSelect = modal
       .locator("#v2CollapseTwo")
       .getByRole("combobox")
@@ -121,8 +114,6 @@ export class EndpointDashboardPage {
     await payloadSelect.selectOption({
       value: config.payloadMode,
     });
-
-    // Authentication
 
     const authSelect = modal
       .locator("#v2CollapseTwo")
@@ -133,7 +124,6 @@ export class EndpointDashboardPage {
   }
 
   private async saveCalloutRule() {
-    const modal = this.rulesModal;
     const saveButton = this.rulesModal.getByRole("button", {
       name: /save/i,
     });
@@ -218,25 +208,13 @@ export class EndpointDashboardPage {
   public async triggerRequest(config: HttpCalloutConfig) {
     const api = await request.newContext();
 
-    const response = await api.fetch(
-      `https://${env.endpointName}.free.beeceptor.com${config.path}`,
-      {
-        method: config.method,
-      },
-    );
+    const response = await api.fetch(`${env.endpointUrl}${config.path}`, {
+      method: config.method,
+    });
 
     expect(response.ok()).toBeTruthy();
 
     return response;
-  }
-
-  private async confirmDelete() {
-    await this.page
-      .getByRole("button", {
-        name: /delete|confirm/i,
-      })
-      .last()
-      .click();
   }
   private async assertRuleDeleted(path: string) {
     await expect(this.ruleRow(path)).toHaveCount(0);
@@ -251,7 +229,7 @@ export class EndpointDashboardPage {
   }
 
   public async deleteHttpCalloutRule(path: string) {
-    if (!(await this.hasRule(path))) {
+    if (!(await this.ruleExists(path))) {
       return;
     }
 
@@ -261,8 +239,6 @@ export class EndpointDashboardPage {
       this.page.waitForEvent("dialog").then((dialog) => dialog.accept()),
       row.locator('button[title="Delete rule"]').click(),
     ]);
-
-    // await this.confirmDelete();
 
     await this.assertRuleDeleted(path);
   }

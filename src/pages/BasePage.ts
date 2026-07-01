@@ -6,16 +6,4 @@ export abstract class BasePage {
   async goto(path = "") {
     await this.page.goto(path);
   }
-
-  async click(locator: Locator) {
-    await locator.click();
-  }
-
-  async fill(locator: Locator, value: string) {
-    await locator.fill(value);
-  }
-
-  async expectVisible(locator: Locator) {
-    await expect(locator).toBeVisible();
-  }
 }
