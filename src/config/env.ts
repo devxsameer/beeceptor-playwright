@@ -14,5 +14,7 @@ export const env = {
   baseUrl: required("BASE_URL"),
   email: required("EMAIL"),
   password: required("PASSWORD"),
-  endpointName: process.env["ENDPOINT_NAME"] ?? undefined,
+  endpointName: process.env.ENDPOINT_NAME ?? "sameer-playwright-assignment",
+  webhookUrl:
+    process.env.WEBHOOK_URL ?? "https://wehhook-api.free.beeceptor.com/",
 } as const;

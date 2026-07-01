@@ -77,7 +77,8 @@ export class EndpointsPage {
     return dashboard;
   }
 
-  async ensureEndpoint(name: string) {
+  async ensureEndpoint() {
+    const name = env.endpointName;
     const exists = await this.hasEndpoint(name);
 
     if (exists) {
